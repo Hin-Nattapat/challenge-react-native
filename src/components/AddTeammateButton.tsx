@@ -1,14 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Pressable, StyleSheet, Text, useColorScheme } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import { useThemeColors } from '../hooks/theme';
 import type { RootStackParamList } from '../navigation/types';
-import { AppearanceMode, darkColors, lightColors } from '../theme/colors';
 
 const AddTeammateButton = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const isDarkMode = useColorScheme() === AppearanceMode.Dark;
-  const colors = isDarkMode ? darkColors : lightColors;
+  const colors = useThemeColors();
 
   return (
     <Pressable

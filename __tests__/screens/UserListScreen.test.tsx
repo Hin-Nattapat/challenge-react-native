@@ -10,6 +10,13 @@ jest.mock('../../src/hooks/users', () => ({
 }));
 
 const useUsersMock = useUsers as jest.MockedFunction<typeof useUsers>;
+const george = {
+  id: 1,
+  email: 'george.bluth@reqres.in',
+  first_name: 'George',
+  last_name: 'Bluth',
+  avatar: 'https://reqres.in/img/faces/1-image.jpg',
+};
 const navigate = jest.fn();
 const navigation = {
   navigate,
@@ -78,17 +85,7 @@ describe('UserListScreen', () => {
 
   test('opens the selected teammate', () => {
     useUsersMock.mockReturnValue({
-      data: {
-        data: [
-          {
-            id: 1,
-            email: 'george.bluth@reqres.in',
-            first_name: 'George',
-            last_name: 'Bluth',
-            avatar: 'https://reqres.in/img/faces/1-image.jpg',
-          },
-        ],
-      },
+      data: { data: [george] },
       isPending: false,
       isError: false,
     } as unknown as ReturnType<typeof useUsers>);
@@ -103,5 +100,21 @@ describe('UserListScreen', () => {
         .props.onPress(),
     );
     expect(navigate).toHaveBeenCalledWith('UserDetail', { userId: 1 });
+  });
+
+  test('falls back to initials when an avatar fails to load', () => {
+    useUsersMock.mockReturnValue({
+      data: { data: [george] },
+      isPending: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useUsers>);
+
+    const tree = renderScreen();
+    const avatar = { testID: 'avatar-image' };
+
+    act(() => tree.root.findByProps(avatar).props.onError());
+
+    expect(tree.root.findAllByProps(avatar)).toHaveLength(0);
+    expect(tree.root.findByProps({ children: 'GB' })).toBeTruthy();
   });
 });

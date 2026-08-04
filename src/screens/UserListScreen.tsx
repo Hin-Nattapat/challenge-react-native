@@ -1,17 +1,14 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { useCallback } from 'react';
+import type { ListRenderItemInfo } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import ErrorState from '../components/ErrorState';
+import LoadingState from '../components/LoadingState';
+import OmiseBadge from '../components/OmiseBadge';
+import UserRow from '../components/UserRow';
+import { useThemeColors } from '../hooks/theme';
 import { useUsers } from '../hooks/users';
 import type { RootStackParamList } from '../navigation/types';
-import { AppearanceMode, darkColors, lightColors } from '../theme/colors';
 import type { User } from '../types/user';
 
 interface IProps {
@@ -21,59 +18,36 @@ interface IProps {
 const UserListScreen = (props: IProps) => {
   const { navigation } = props;
   const { data, isError, isPending, refetch } = useUsers();
-  const isDarkMode = useColorScheme() === AppearanceMode.Dark;
-  const colors = isDarkMode ? darkColors : lightColors;
+  const colors = useThemeColors();
   const users = data?.data ?? [];
 
+  const openUser = useCallback(
+    (user: User) => {
+      navigation.navigate('UserDetail', { userId: user.id });
+    },
+    [navigation],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<User>) => (
+      <UserRow onPress={openUser} user={item} />
+    ),
+    [openUser],
+  );
+
   if (isPending) {
-    return (
-      <View
-        accessibilityLabel="Loading teammates"
-        accessibilityLiveRegion="polite"
-        accessibilityRole="progressbar"
-        style={[styles.stateContainer, { backgroundColor: colors.background }]}
-      >
-        <ActivityIndicator color={colors.accent} size="large" />
-        <Text style={[styles.stateTitle, { color: colors.text }]}>
-          Loading teammates
-        </Text>
-      </View>
-    );
+    return <LoadingState label="Loading teammates" />;
   }
 
   if (isError) {
     return (
-      <View
-        accessibilityLiveRegion="assertive"
-        accessibilityRole="alert"
-        style={[styles.stateContainer, { backgroundColor: colors.background }]}
-      >
-        <Text style={[styles.stateTitle, { color: colors.text }]}>
-          Could not load teammates
-        </Text>
-        <Text style={[styles.stateMessage, { color: colors.secondaryText }]}>
-          Check your connection and try again.
-        </Text>
-        <Pressable
-          accessibilityLabel="Retry loading teammates"
-          accessibilityRole="button"
-          onPress={() => refetch()}
-          style={({ pressed }) => [
-            styles.retryButton,
-            { backgroundColor: colors.accent, opacity: pressed ? 0.72 : 1 },
-          ]}
-        >
-          <Text style={[styles.retryLabel, { color: colors.onAccent }]}>
-            Try again
-          </Text>
-        </Pressable>
-      </View>
+      <ErrorState
+        onRetry={() => refetch()}
+        retryAccessibilityLabel="Retry loading teammates"
+        title="Could not load teammates"
+      />
     );
   }
-
-  const openUser = (user: User) => {
-    navigation.navigate('UserDetail', { userId: user.id });
-  };
 
   return (
     <FlatList
@@ -85,14 +59,15 @@ const UserListScreen = (props: IProps) => {
       keyExtractor={user => String(user.id)}
       ListEmptyComponent={
         <View accessibilityLiveRegion="polite" style={styles.emptyContainer}>
-          <Text style={[styles.stateTitle, { color: colors.text }]}>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>
             No teammates found
           </Text>
-          <Text style={[styles.stateMessage, { color: colors.secondaryText }]}>
+          <Text style={[styles.emptyMessage, { color: colors.secondaryText }]}>
             The directory is empty right now.
           </Text>
         </View>
       }
+      ListFooterComponent={<OmiseBadge />}
       ListHeaderComponent={
         users.length > 0 ? (
           <View style={styles.listHeader}>
@@ -108,40 +83,7 @@ const UserListScreen = (props: IProps) => {
           </View>
         ) : null
       }
-      renderItem={({ item }) => (
-        <Pressable
-          accessibilityLabel={`${item.first_name} ${item.last_name}, ${item.email}`}
-          accessibilityRole="button"
-          onPress={() => openUser(item)}
-          style={({ pressed }) => [
-            styles.row,
-            {
-              backgroundColor: pressed ? colors.pressed : colors.background,
-              borderBottomColor: colors.separator,
-            },
-          ]}
-        >
-          <Image
-            accessibilityIgnoresInvertColors
-            source={{ uri: item.avatar }}
-            style={styles.avatar}
-          />
-          <View style={styles.userText}>
-            <Text
-              numberOfLines={1}
-              style={[styles.name, { color: colors.text }]}
-            >
-              {item.first_name} {item.last_name}
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={[styles.email, { color: colors.secondaryText }]}
-            >
-              {item.email}
-            </Text>
-          </View>
-        </Pressable>
-      )}
+      renderItem={renderItem}
       style={{ backgroundColor: colors.background }}
       testID="user-list"
     />
@@ -149,11 +91,6 @@ const UserListScreen = (props: IProps) => {
 };
 
 const styles = StyleSheet.create({
-  avatar: {
-    borderRadius: 28,
-    height: 56,
-    width: 56,
-  },
   count: {
     fontSize: 15,
     marginTop: 4,
@@ -166,9 +103,17 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
   },
-  email: {
-    fontSize: 15,
-    marginTop: 4,
+  emptyMessage: {
+    fontSize: 16,
+    lineHeight: 23,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 16,
+    textAlign: 'center',
   },
   heading: {
     fontSize: 28,
@@ -182,53 +127,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     paddingHorizontal: 20,
     paddingTop: 24,
-  },
-  name: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  retryButton: {
-    alignItems: 'center',
-    borderRadius: 12,
-    justifyContent: 'center',
-    marginTop: 24,
-    minHeight: 48,
-    minWidth: 136,
-    paddingHorizontal: 20,
-  },
-  retryLabel: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  row: {
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    minHeight: 88,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  stateContainer: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  stateMessage: {
-    fontSize: 16,
-    lineHeight: 23,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  stateTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  userText: {
-    flex: 1,
-    marginLeft: 16,
   },
 });
 
