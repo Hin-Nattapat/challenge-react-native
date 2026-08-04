@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AddTeammateButton from '../components/AddTeammateButton';
 import AddTeammateScreen from '../screens/AddTeammateScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import UserListScreen from '../screens/UserListScreen';
@@ -12,7 +13,10 @@ const RootNavigator = () => {
       <Stack.Screen
         name="UserList"
         component={UserListScreen}
-        options={{ title: 'Team directory' }}
+        options={{
+          headerRight: AddTeammateButton,
+          title: 'Team directory',
+        }}
       />
       <Stack.Screen
         name="UserDetail"
