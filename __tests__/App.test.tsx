@@ -6,6 +6,10 @@ import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import App from '../App';
 
+jest.mock('../src/hooks/users', () => ({
+  useUsers: () => ({ isPending: true }),
+}));
+
 test('renders the team directory navigation shell', async () => {
   let tree: ReactTestRenderer.ReactTestRenderer;
 
