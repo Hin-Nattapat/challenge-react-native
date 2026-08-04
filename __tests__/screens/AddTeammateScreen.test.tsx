@@ -11,6 +11,7 @@ const useCreateUserMock = useCreateUser as jest.MockedFunction<
   typeof useCreateUser
 >;
 const mutate = jest.fn();
+const reset = jest.fn();
 
 const renderScreen = () => {
   let tree: ReactTestRenderer.ReactTestRenderer;
@@ -25,9 +26,10 @@ const renderScreen = () => {
 describe('AddTeammateScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useCreateUserMock.mockReturnValue({ mutate } as unknown as ReturnType<
-      typeof useCreateUser
-    >);
+    useCreateUserMock.mockReturnValue({
+      mutate,
+      reset,
+    } as unknown as ReturnType<typeof useCreateUser>);
   });
 
   test('validates both required fields before creating', () => {
@@ -73,6 +75,7 @@ describe('AddTeammateScreen', () => {
     useCreateUserMock.mockReturnValue({
       isPending: true,
       mutate,
+      reset,
     } as unknown as ReturnType<typeof useCreateUser>);
 
     const tree = renderScreen();
@@ -91,11 +94,57 @@ describe('AddTeammateScreen', () => {
   ])('shows mutation feedback', (mutationState, message) => {
     useCreateUserMock.mockReturnValue({
       mutate,
+      reset,
       ...mutationState,
     } as unknown as ReturnType<typeof useCreateUser>);
 
     const tree = renderScreen();
 
     expect(tree.root.findByProps({ children: message })).toBeTruthy();
+  });
+
+  test('clears a validation error once the field is edited', () => {
+    const tree = renderScreen();
+
+    act(() =>
+      tree.root
+        .findByProps({ accessibilityLabel: 'Create teammate' })
+        .props.onPress(),
+    );
+    expect(
+      tree.root.findByProps({ children: 'Name is required' }),
+    ).toBeTruthy();
+
+    act(() =>
+      tree.root
+        .findByProps({ accessibilityLabel: 'Name' })
+        .props.onChangeText('Jane Doe'),
+    );
+
+    expect(
+      tree.root.findAllByProps({ children: 'Name is required' }),
+    ).toHaveLength(0);
+    expect(tree.root.findByProps({ children: 'Job is required' })).toBeTruthy();
+  });
+
+  test('drops stale mutation feedback once the form is edited again', () => {
+    useCreateUserMock.mockReturnValue({
+      isSuccess: true,
+      mutate,
+      reset,
+    } as unknown as ReturnType<typeof useCreateUser>);
+
+    const tree = renderScreen();
+    expect(
+      tree.root.findByProps({ children: 'Teammate created' }),
+    ).toBeTruthy();
+
+    act(() =>
+      tree.root
+        .findByProps({ accessibilityLabel: 'Name' })
+        .props.onChangeText('Jane Doe'),
+    );
+
+    expect(reset).toHaveBeenCalledTimes(1);
   });
 });

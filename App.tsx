@@ -3,13 +3,12 @@ import {
   DefaultTheme,
   NavigationContainer,
 } from '@react-navigation/native';
-import { useColorScheme } from 'react-native';
+import { useIsDarkMode } from './src/hooks/theme';
 import RootNavigator from './src/navigation/RootNavigator';
 import QueryProvider from './src/providers/QueryProvider';
-import { AppearanceMode } from './src/theme/colors';
 
 const App = () => {
-  const isDarkMode = useColorScheme() === AppearanceMode.Dark;
+  const isDarkMode = useIsDarkMode();
 
   return (
     <QueryProvider>
