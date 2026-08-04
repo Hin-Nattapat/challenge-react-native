@@ -4,6 +4,7 @@ import type { ListRenderItemInfo } from 'react-native';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
+import OmiseBadge from '../components/OmiseBadge';
 import UserRow from '../components/UserRow';
 import { useThemeColors } from '../hooks/theme';
 import { useUsers } from '../hooks/users';
@@ -66,6 +67,7 @@ const UserListScreen = (props: IProps) => {
           </Text>
         </View>
       }
+      ListFooterComponent={<OmiseBadge />}
       ListHeaderComponent={
         users.length > 0 ? (
           <View style={styles.listHeader}>
