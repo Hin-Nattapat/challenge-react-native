@@ -1,11 +1,14 @@
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from './src/navigation/RootNavigator';
+import QueryProvider from './src/providers/QueryProvider';
 
 const App = () => {
   return (
-    <NavigationContainer>
-      <RootNavigator />
-    </NavigationContainer>
+    <QueryProvider>
+      <NavigationContainer>
+        <RootNavigator />
+      </NavigationContainer>
+    </QueryProvider>
   );
 };
 
