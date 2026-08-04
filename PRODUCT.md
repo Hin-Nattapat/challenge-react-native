@@ -33,7 +33,7 @@ The candidate builds and debugs locally with React Native CLI, Xcode/iOS Simulat
 
 ## Evidence on Hand
 
-- `README.md` contains the challenge requirements, response shape, scoring criteria, and documented out-of-scope work.
+- `CHALLENGE.md` contains the challenge requirements, response shape, scoring criteria, and documented out-of-scope work.
 - No starter implementation, product assets, or reference UI is provided.
 
 ## Product Principles
