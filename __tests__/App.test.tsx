@@ -3,11 +3,17 @@
  */
 
 import React from 'react';
-import ReactTestRenderer from 'react-test-renderer';
+import ReactTestRenderer, { act } from 'react-test-renderer';
 import App from '../App';
 
-test('renders correctly', async () => {
-  await ReactTestRenderer.act(() => {
-    ReactTestRenderer.create(<App />);
+test('renders the team directory navigation shell', async () => {
+  let tree: ReactTestRenderer.ReactTestRenderer;
+
+  await act(() => {
+    tree = ReactTestRenderer.create(<App />);
   });
+
+  expect(
+    tree!.root.findByProps({ accessibilityLabel: 'Open add teammate' }),
+  ).toBeTruthy();
 });
