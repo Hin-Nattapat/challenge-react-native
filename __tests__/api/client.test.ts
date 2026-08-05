@@ -69,4 +69,30 @@ describe('apiRequest', () => {
       'Request failed with status 500',
     );
   });
+
+  test('reports the status when a failed response is not JSON', async () => {
+    fetchMock.mockResolvedValue({
+      json: jest
+        .fn()
+        .mockRejectedValue(new SyntaxError("Unexpected token '<'")),
+      ok: false,
+      status: 502,
+    });
+
+    await expect(apiRequest('/users')).rejects.toThrow(
+      'Request failed with status 502',
+    );
+  });
+
+  test('rejects an unreadable body on an otherwise successful response', async () => {
+    fetchMock.mockResolvedValue({
+      json: jest.fn().mockRejectedValue(new SyntaxError('Unexpected end')),
+      ok: true,
+      status: 200,
+    });
+
+    await expect(apiRequest('/users')).rejects.toThrow(
+      'Received an unreadable response from the server',
+    );
+  });
 });

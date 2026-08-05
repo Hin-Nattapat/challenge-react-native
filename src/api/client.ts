@@ -30,15 +30,32 @@ export const apiRequest = async <TResponse, TBody = never>(
   }
 
   const response = await fetch(`${env.apiBaseUrl}${endpoint}`, request);
-  const responseBody: unknown = await response.json();
+
+  // A gateway can answer with HTML or an empty body. Parsing must not throw
+  // before the status has been turned into a message the screens can show.
+  let responseBody: unknown;
+  let isBodyReadable = true;
+
+  try {
+    responseBody = await response.json();
+  } catch {
+    isBodyReadable = false;
+  }
 
   if (!response.ok) {
-    const error = (responseBody as IErrorResponse).error;
+    const error = isBodyReadable
+      ? (responseBody as IErrorResponse).error
+      : undefined;
+
     throw new Error(
       typeof error === 'string'
         ? error
         : `Request failed with status ${response.status}`,
     );
+  }
+
+  if (!isBodyReadable) {
+    throw new Error('Received an unreadable response from the server');
   }
 
   return responseBody as TResponse;
