@@ -6,7 +6,7 @@ React Native implementation of the [Team Directory take-home challenge](./CHALLE
 
 - Node.js 22.11 or later and npm
 - Xcode and CocoaPods for iOS
-- JDK 17 and Android command-line tools for Android
+- JDK 17 and the Android SDK for Android
 
 ## Setup
 
@@ -17,6 +17,22 @@ cd ios && bundle exec pod install && cd ..
 ```
 
 Set `REQRES_API_KEY` in `.env` to a valid ReqRes API key. `API_BASE_URL` is preconfigured for ReqRes. Environment values bundled into a client app are not secret storage; do not put credentials that must remain private in `.env`.
+
+### Android environment
+
+Gradle needs a JDK 17 and the SDK location. A Homebrew `openjdk@17` is keg-only, so
+`java` is not on `PATH` by default and the build fails before it starts — point
+`JAVA_HOME` at it explicitly:
+
+```sh
+export JAVA_HOME=$(/usr/libexec/java_home -v 17 2>/dev/null || echo /opt/homebrew/opt/openjdk@17)
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$PATH"
+```
+
+Add these to your shell profile to make them permanent. As an alternative to
+`ANDROID_HOME`, create `android/local.properties` (git-ignored) containing
+`sdk.dir=/absolute/path/to/Android/sdk`.
 
 ## Run
 
@@ -33,7 +49,11 @@ npm run ios
 npm run android
 ```
 
-Verified on iPhone 17 Pro running iOS 26.5 and an Android API 36 emulator.
+Verified on an iPhone 17 Pro simulator (iOS 26.5, Xcode 26.6) and on a
+`TeamDirectory_API_36` Android emulator (API 36, JDK 17.0.20). On both targets the
+list, detail, and add-teammate screens were exercised against the live ReqRes API,
+along with the error and validation states. Dark appearance was additionally checked
+on iOS.
 
 ## Checks
 
