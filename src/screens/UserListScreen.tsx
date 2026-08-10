@@ -2,6 +2,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback } from 'react';
 import type { ListRenderItemInfo } from 'react-native';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getErrorMessage } from '../api/errors';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import OmiseBadge from '../components/OmiseBadge';
@@ -17,8 +19,9 @@ interface IProps {
 
 const UserListScreen = (props: IProps) => {
   const { navigation } = props;
-  const { data, isError, isPending, refetch } = useUsers();
+  const { data, error, isError, isPending, refetch } = useUsers();
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const users = data?.data ?? [];
 
   const openUser = useCallback(
@@ -42,6 +45,7 @@ const UserListScreen = (props: IProps) => {
   if (isError) {
     return (
       <ErrorState
+        message={getErrorMessage(error)}
         onRetry={() => refetch()}
         retryAccessibilityLabel="Retry loading teammates"
         title="Could not load teammates"
@@ -54,6 +58,7 @@ const UserListScreen = (props: IProps) => {
       contentContainerStyle={[
         styles.listContent,
         users.length === 0 && styles.emptyListContent,
+        { paddingBottom: insets.bottom + 24 },
       ]}
       data={users}
       keyExtractor={user => String(user.id)}

@@ -1,8 +1,7 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useThemeColors } from '../hooks/theme';
 
-// The official wordmark is drawn in white with a mint accent, so it ships on
-// its own dark surface and stays legible in both appearances.
+// The wordmark is white with a mint accent, so it ships on its own dark surface.
 const OmiseBadge = () => {
   const colors = useThemeColors();
 

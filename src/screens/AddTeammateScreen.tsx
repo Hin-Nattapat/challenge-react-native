@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Text,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getApiMessage } from '../api/errors';
 import FormField from '../components/FormField';
 import { useThemeColors } from '../hooks/theme';
 import { useCreateUser } from '../hooks/users';
@@ -26,6 +28,7 @@ const AddTeammateScreen = () => {
   const { error, isError, isPending, isSuccess, mutate, reset } =
     useCreateUser();
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
 
   const clearValidationError = (field: keyof IValidationErrors) => {
     setValidationErrors(current =>
@@ -33,8 +36,7 @@ const AddTeammateScreen = () => {
     );
   };
 
-  // Feedback belongs to the submission that produced it, so drop it as soon as
-  // the form no longer holds those values.
+  // Feedback belongs to the submission that produced it.
   const clearMutationFeedback = () => {
     if (isError || isSuccess) {
       reset();
@@ -83,8 +85,7 @@ const AddTeammateScreen = () => {
     );
   };
 
-  const errorMessage =
-    error instanceof Error ? error.message : 'Could not create teammate';
+  const errorMessage = getApiMessage(error, 'Could not create teammate');
 
   return (
     <KeyboardAvoidingView
@@ -92,7 +93,10 @@ const AddTeammateScreen = () => {
       style={[styles.screen, { backgroundColor: colors.background }]}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 40 },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <Text
