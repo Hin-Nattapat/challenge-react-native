@@ -18,6 +18,12 @@ cd ios && bundle exec pod install && cd ..
 
 Set `REQRES_API_KEY` in `.env` to a valid ReqRes API key. `API_BASE_URL` is preconfigured for ReqRes. Environment values bundled into a client app are not secret storage; do not put credentials that must remain private in `.env`.
 
+The values are inlined at build time, so the app names anything still unset instead
+of failing on its first request. Seeing this screen means `.env` needs attention and
+Metro needs restarting with `--reset-cache`:
+
+<img src="docs/screenshots/config-error.png" alt="Configuration needed screen naming the unset variable" width="200" />
+
 ### Android environment
 
 Gradle needs a JDK 17 and the SDK location. A Homebrew `openjdk@17` is keg-only, so
@@ -54,6 +60,19 @@ Verified on an iPhone 17 Pro simulator (iOS 26.5, Xcode 26.6) and on a
 list, detail, and add-teammate screens were exercised against the live ReqRes API,
 along with the error and validation states. Dark appearance was additionally checked
 on iOS.
+
+## Screens
+
+Captured from the runs described above, against the live ReqRes API.
+
+| | iOS | Android |
+| --- | --- | --- |
+| **List** | <img src="docs/screenshots/ios-list.png" alt="iOS team list" width="200" /> | <img src="docs/screenshots/android-list.png" alt="Android team list" width="200" /> |
+| **Detail** | <img src="docs/screenshots/ios-detail.png" alt="iOS teammate detail" width="200" /> | <img src="docs/screenshots/android-detail.png" alt="Android teammate detail" width="200" /> |
+| **Add teammate** | <img src="docs/screenshots/ios-add-teammate.png" alt="iOS add teammate form" width="200" /> | <img src="docs/screenshots/android-add-teammate.png" alt="Android add teammate form" width="200" /> |
+
+Loading, empty, error, and validation states are exercised by the test suite rather
+than captured here.
 
 ## Checks
 
