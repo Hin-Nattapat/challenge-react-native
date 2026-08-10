@@ -1,5 +1,7 @@
 import type { RouteProp } from '@react-navigation/native';
 import { ScrollView, StyleSheet, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getErrorMessage } from '../api/errors';
 import Avatar from '../components/Avatar';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
@@ -15,8 +17,11 @@ interface IProps {
 
 const UserDetailScreen = (props: IProps) => {
   const { route } = props;
-  const { data, isError, isPending, refetch } = useUser(route.params.userId);
+  const { data, error, isError, isPending, refetch } = useUser(
+    route.params.userId,
+  );
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
 
   if (isPending) {
     return <LoadingState label="Loading teammate" />;
@@ -25,6 +30,7 @@ const UserDetailScreen = (props: IProps) => {
   if (isError || !data) {
     return (
       <ErrorState
+        message={getErrorMessage(error)}
         onRetry={() => refetch()}
         retryAccessibilityLabel="Retry loading teammate"
         title="Could not load teammate"
@@ -41,7 +47,10 @@ const UserDetailScreen = (props: IProps) => {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: insets.bottom + 24 },
+      ]}
       style={{ backgroundColor: colors.background }}
     >
       <Avatar

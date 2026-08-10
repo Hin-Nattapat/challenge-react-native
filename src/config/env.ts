@@ -1,19 +1,19 @@
 import { API_BASE_URL, REQRES_API_KEY } from './envSource';
 
-export const getRequiredEnv = (
-  name: string,
-  value: string | undefined,
-): string => {
-  const trimmedValue = value?.trim();
-
-  if (!trimmedValue) {
-    throw new Error(`Missing environment variable: ${name}`);
-  }
-
-  return trimmedValue;
-};
+// This module sits on every screen's import path, so throwing here would
+// red-screen the app before any UI could explain the fix. Report as data.
+const readEnv = (value: string | undefined): string => value?.trim() ?? '';
 
 export const env = {
-  apiBaseUrl: getRequiredEnv('API_BASE_URL', API_BASE_URL),
-  reqresApiKey: getRequiredEnv('REQRES_API_KEY', REQRES_API_KEY),
+  apiBaseUrl: readEnv(API_BASE_URL),
+  reqresApiKey: readEnv(REQRES_API_KEY),
 };
+
+export const missingEnvVars = (
+  [
+    ['API_BASE_URL', env.apiBaseUrl],
+    ['REQRES_API_KEY', env.reqresApiKey],
+  ] as const
+)
+  .filter(([, value]) => !value)
+  .map(([name]) => name);

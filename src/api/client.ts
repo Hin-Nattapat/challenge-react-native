@@ -1,4 +1,5 @@
 import { env } from '../config/env';
+import { createApiError } from './errors';
 
 export enum HttpMethod {
   Post = 'POST',
@@ -31,8 +32,7 @@ export const apiRequest = async <TResponse, TBody = never>(
 
   const response = await fetch(`${env.apiBaseUrl}${endpoint}`, request);
 
-  // A gateway can answer with HTML or an empty body. Parsing must not throw
-  // before the status has been turned into a message the screens can show.
+  // A gateway can answer with HTML or an empty body; parsing must not throw first.
   let responseBody: unknown;
   let isBodyReadable = true;
 
@@ -47,15 +47,19 @@ export const apiRequest = async <TResponse, TBody = never>(
       ? (responseBody as IErrorResponse).error
       : undefined;
 
-    throw new Error(
+    throw createApiError(
       typeof error === 'string'
         ? error
         : `Request failed with status ${response.status}`,
+      response.status,
     );
   }
 
   if (!isBodyReadable) {
-    throw new Error('Received an unreadable response from the server');
+    throw createApiError(
+      'Received an unreadable response from the server',
+      response.status,
+    );
   }
 
   return responseBody as TResponse;

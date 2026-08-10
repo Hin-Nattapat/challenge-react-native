@@ -2,13 +2,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useThemeColors } from '../hooks/theme';
 
 interface IProps {
+  message: string;
   onRetry: () => void;
   retryAccessibilityLabel: string;
   title: string;
 }
 
 const ErrorState = (props: IProps) => {
-  const { onRetry, retryAccessibilityLabel, title } = props;
+  const { message, onRetry, retryAccessibilityLabel, title } = props;
   const colors = useThemeColors();
 
   return (
@@ -19,7 +20,7 @@ const ErrorState = (props: IProps) => {
     >
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.secondaryText }]}>
-        Check your connection and try again.
+        {message}
       </Text>
       <Pressable
         accessibilityLabel={retryAccessibilityLabel}
