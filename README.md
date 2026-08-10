@@ -26,19 +26,22 @@ Metro needs restarting with `--reset-cache`:
 
 ### Android environment
 
-Gradle needs a JDK 17 and the SDK location. A Homebrew `openjdk@17` is keg-only, so
-`java` is not on `PATH` by default and the build fails before it starts — point
-`JAVA_HOME` at it explicitly:
+Most setups need nothing here — Android Studio ships its own JDK and writes
+`android/local.properties` for you.
+
+If `java -version` reports `Unable to locate a Java Runtime`, a JDK is installed but
+not on `PATH`, and Gradle fails before the build starts. A Homebrew `openjdk@17`
+causes exactly this: it is keg-only, so it is never symlinked onto `PATH`.
 
 ```sh
-export JAVA_HOME=$(/usr/libexec/java_home -v 17 2>/dev/null || echo /opt/homebrew/opt/openjdk@17)
+export JAVA_HOME=$(/usr/libexec/java_home -v 17 2>/dev/null || brew --prefix openjdk@17)
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$PATH"
 ```
 
-Add these to your shell profile to make them permanent. As an alternative to
-`ANDROID_HOME`, create `android/local.properties` (git-ignored) containing
-`sdk.dir=/absolute/path/to/Android/sdk`.
+`brew --prefix` resolves on both Apple Silicon and Intel. Add the exports to your
+shell profile to make them permanent. As an alternative to `ANDROID_HOME`, create
+`android/local.properties` (git-ignored) containing `sdk.dir=/path/to/Android/sdk`.
 
 ## Run
 
