@@ -20,6 +20,7 @@ export interface UserDetailResponse {
 
 export interface CreateUserRequest {
   name: string;
+  email: string;
   job: string;
 }
 

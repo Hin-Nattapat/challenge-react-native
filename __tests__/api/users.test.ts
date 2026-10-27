@@ -26,7 +26,11 @@ describe('user endpoints', () => {
   });
 
   test('creates a user with the supplied request', async () => {
-    const request = { name: 'Jane', job: 'Engineer' };
+    const request = {
+      name: 'Jane',
+      email: 'jane@example.com',
+      job: 'Engineer',
+    };
 
     await createUser(request);
 

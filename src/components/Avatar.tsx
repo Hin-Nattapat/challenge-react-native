@@ -15,7 +15,8 @@ const Avatar = (props: IProps) => {
   const colors = useThemeColors();
   const shape = { borderRadius: size / 2, height: size, width: size };
 
-  if (hasImageFailed) {
+  // Locally created teammates have no avatar URL to load.
+  if (hasImageFailed || !uri) {
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`;
 
     return (

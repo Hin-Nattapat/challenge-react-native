@@ -1,3 +1,4 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,20 +14,30 @@ import { getApiMessage } from '../api/errors';
 import FormField from '../components/FormField';
 import { useThemeColors } from '../hooks/theme';
 import { useCreateUser } from '../hooks/users';
+import type { RootStackParamList } from '../navigation/types';
+
+interface IProps {
+  navigation: NativeStackNavigationProp<RootStackParamList, 'AddTeammate'>;
+}
+
+// Catches typos, not every RFC-valid address; ReqRes doesn't check either.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface IValidationErrors {
+  email?: string;
   job?: string;
   name?: string;
 }
 
-const AddTeammateScreen = () => {
+const AddTeammateScreen = (props: IProps) => {
+  const { navigation } = props;
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [job, setJob] = useState('');
   const [validationErrors, setValidationErrors] = useState<IValidationErrors>(
     {},
   );
-  const { error, isError, isPending, isSuccess, mutate, reset } =
-    useCreateUser();
+  const { error, isError, isPending, mutate, reset } = useCreateUser();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
 
@@ -38,7 +49,7 @@ const AddTeammateScreen = () => {
 
   // Feedback belongs to the submission that produced it.
   const clearMutationFeedback = () => {
-    if (isError || isSuccess) {
+    if (isError) {
       reset();
     }
   };
@@ -46,6 +57,12 @@ const AddTeammateScreen = () => {
   const changeName = (value: string) => {
     setName(value);
     clearValidationError('name');
+    clearMutationFeedback();
+  };
+
+  const changeEmail = (value: string) => {
+    setEmail(value);
+    clearValidationError('email');
     clearMutationFeedback();
   };
 
@@ -57,11 +74,18 @@ const AddTeammateScreen = () => {
 
   const submit = () => {
     const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
     const trimmedJob = job.trim();
     const nextErrors: IValidationErrors = {};
 
     if (!trimmedName) {
       nextErrors.name = 'Name is required';
+    }
+
+    if (!trimmedEmail) {
+      nextErrors.email = 'Email is required';
+    } else if (!EMAIL_PATTERN.test(trimmedEmail)) {
+      nextErrors.email = 'Enter a valid email';
     }
 
     if (!trimmedJob) {
@@ -70,16 +94,16 @@ const AddTeammateScreen = () => {
 
     setValidationErrors(nextErrors);
 
-    if (nextErrors.name || nextErrors.job) {
+    if (nextErrors.name || nextErrors.email || nextErrors.job) {
       return;
     }
 
     mutate(
-      { name: trimmedName, job: trimmedJob },
+      { name: trimmedName, email: trimmedEmail, job: trimmedJob },
       {
+        // The list announces the result, so the form just gets out of the way.
         onSuccess: () => {
-          setName('');
-          setJob('');
+          navigation.popTo('UserList', { createdTeammateName: trimmedName });
         },
       },
     );
@@ -119,6 +143,17 @@ const AddTeammateScreen = () => {
           value={name}
         />
         <FormField
+          autoCapitalize="none"
+          disabled={isPending}
+          error={validationErrors.email}
+          keyboardType="email-address"
+          label="Email"
+          onChangeText={changeEmail}
+          placeholder="jane.doe@example.com"
+          returnKeyType="next"
+          value={email}
+        />
+        <FormField
           disabled={isPending}
           error={validationErrors.job}
           label="Job"
@@ -136,14 +171,6 @@ const AddTeammateScreen = () => {
             style={[styles.feedback, { color: colors.error }]}
           >
             {errorMessage}
-          </Text>
-        )}
-        {isSuccess && (
-          <Text
-            accessibilityLiveRegion="polite"
-            style={[styles.feedback, { color: colors.accent }]}
-          >
-            Teammate created
           </Text>
         )}
 

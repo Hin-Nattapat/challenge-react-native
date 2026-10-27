@@ -17,9 +17,7 @@ interface IProps {
 
 const UserDetailScreen = (props: IProps) => {
   const { route } = props;
-  const { data, error, isError, isPending, refetch } = useUser(
-    route.params.userId,
-  );
+  const { data, error, isPending, refetch } = useUser(route.params.userId);
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
 
@@ -27,7 +25,8 @@ const UserDetailScreen = (props: IProps) => {
     return <LoadingState label="Loading teammate" />;
   }
 
-  if (isError || !data) {
+  // A failed background refetch keeps the cached teammate on screen.
+  if (!data) {
     return (
       <ErrorState
         message={getErrorMessage(error)}
