@@ -40,7 +40,7 @@ describe('AddTeammateScreen', () => {
     } as unknown as ReturnType<typeof useCreateUser>);
   });
 
-  test('validates both required fields before creating', () => {
+  test('validates every required field before creating', () => {
     const tree = renderScreen();
 
     act(() =>
@@ -51,6 +51,9 @@ describe('AddTeammateScreen', () => {
 
     expect(
       tree.root.findByProps({ children: 'Name is required' }),
+    ).toBeTruthy();
+    expect(
+      tree.root.findByProps({ children: 'Email is required' }),
     ).toBeTruthy();
     expect(tree.root.findByProps({ children: 'Job is required' })).toBeTruthy();
     expect(mutate).not.toHaveBeenCalled();
@@ -64,6 +67,9 @@ describe('AddTeammateScreen', () => {
         .findByProps({ accessibilityLabel: 'Name' })
         .props.onChangeText(' Jane Doe ');
       tree.root
+        .findByProps({ accessibilityLabel: 'Email' })
+        .props.onChangeText(' jane@example.com ');
+      tree.root
         .findByProps({ accessibilityLabel: 'Job' })
         .props.onChangeText(' Engineer ');
     });
@@ -74,9 +80,35 @@ describe('AddTeammateScreen', () => {
     );
 
     expect(mutate).toHaveBeenCalledWith(
-      { name: 'Jane Doe', job: 'Engineer' },
+      { name: 'Jane Doe', email: 'jane@example.com', job: 'Engineer' },
       expect.any(Object),
     );
+  });
+
+  test('rejects a malformed email', () => {
+    const tree = renderScreen();
+
+    act(() => {
+      tree.root
+        .findByProps({ accessibilityLabel: 'Name' })
+        .props.onChangeText('Jane Doe');
+      tree.root
+        .findByProps({ accessibilityLabel: 'Email' })
+        .props.onChangeText('jane@example');
+      tree.root
+        .findByProps({ accessibilityLabel: 'Job' })
+        .props.onChangeText('Engineer');
+    });
+    act(() =>
+      tree.root
+        .findByProps({ accessibilityLabel: 'Create teammate' })
+        .props.onPress(),
+    );
+
+    expect(
+      tree.root.findByProps({ children: 'Enter a valid email' }),
+    ).toBeTruthy();
+    expect(mutate).not.toHaveBeenCalled();
   });
 
   test('disables submit while creating', () => {
@@ -103,6 +135,9 @@ describe('AddTeammateScreen', () => {
       tree.root
         .findByProps({ accessibilityLabel: 'Name' })
         .props.onChangeText('Jane Doe');
+      tree.root
+        .findByProps({ accessibilityLabel: 'Email' })
+        .props.onChangeText('jane@example.com');
       tree.root
         .findByProps({ accessibilityLabel: 'Job' })
         .props.onChangeText('Engineer');

@@ -27,11 +27,10 @@ export const toCreatedUser = (response: CreateUserResponse): User => {
 
   return {
     id: Number(response.id),
-    email: '',
+    email: response.email,
     first_name: firstName,
     last_name: lastNames.join(' '),
     avatar: '',
-    job: response.job,
   };
 };
 

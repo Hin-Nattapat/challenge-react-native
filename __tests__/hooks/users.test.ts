@@ -52,6 +52,7 @@ test('uses the requested id for the user detail query', () => {
 const created = {
   id: '512',
   name: 'Jane van Doe',
+  email: 'jane@example.com',
   job: 'Engineer',
   createdAt: '2026-10-27T00:00:00.000Z',
 };
@@ -67,11 +68,10 @@ test('uses the create endpoint for the create user mutation', () => {
 test('maps a create response onto a directory user', () => {
   expect(toCreatedUser(created)).toEqual({
     id: 512,
-    email: '',
+    email: 'jane@example.com',
     first_name: 'Jane',
     last_name: 'van Doe',
     avatar: '',
-    job: 'Engineer',
   });
 });
 

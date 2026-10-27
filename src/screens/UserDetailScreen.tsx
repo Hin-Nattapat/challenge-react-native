@@ -41,7 +41,6 @@ const UserDetailScreen = (props: IProps) => {
     avatar,
     email,
     first_name: firstName,
-    job,
     last_name: lastName,
   } = data.data;
 
@@ -67,7 +66,7 @@ const UserDetailScreen = (props: IProps) => {
         {firstName} {lastName}
       </Text>
       <Text selectable style={[styles.email, { color: colors.secondaryText }]}>
-        {email || job}
+        {email}
       </Text>
     </ScrollView>
   );

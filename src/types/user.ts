@@ -4,8 +4,6 @@ export interface User {
   first_name: string;
   last_name: string;
   avatar: string;
-  // Only teammates created in this session have one; ReqRes users don't.
-  job?: string;
 }
 
 export interface UserListResponse {
@@ -22,6 +20,7 @@ export interface UserDetailResponse {
 
 export interface CreateUserRequest {
   name: string;
+  email: string;
   job: string;
 }
 

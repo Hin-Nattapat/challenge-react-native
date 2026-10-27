@@ -20,7 +20,11 @@ interface IProps {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AddTeammate'>;
 }
 
+// Catches typos, not every RFC-valid address; ReqRes doesn't check either.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 interface IValidationErrors {
+  email?: string;
   job?: string;
   name?: string;
 }
@@ -28,6 +32,7 @@ interface IValidationErrors {
 const AddTeammateScreen = (props: IProps) => {
   const { navigation } = props;
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [job, setJob] = useState('');
   const [validationErrors, setValidationErrors] = useState<IValidationErrors>(
     {},
@@ -55,6 +60,12 @@ const AddTeammateScreen = (props: IProps) => {
     clearMutationFeedback();
   };
 
+  const changeEmail = (value: string) => {
+    setEmail(value);
+    clearValidationError('email');
+    clearMutationFeedback();
+  };
+
   const changeJob = (value: string) => {
     setJob(value);
     clearValidationError('job');
@@ -63,11 +74,18 @@ const AddTeammateScreen = (props: IProps) => {
 
   const submit = () => {
     const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
     const trimmedJob = job.trim();
     const nextErrors: IValidationErrors = {};
 
     if (!trimmedName) {
       nextErrors.name = 'Name is required';
+    }
+
+    if (!trimmedEmail) {
+      nextErrors.email = 'Email is required';
+    } else if (!EMAIL_PATTERN.test(trimmedEmail)) {
+      nextErrors.email = 'Enter a valid email';
     }
 
     if (!trimmedJob) {
@@ -76,12 +94,12 @@ const AddTeammateScreen = (props: IProps) => {
 
     setValidationErrors(nextErrors);
 
-    if (nextErrors.name || nextErrors.job) {
+    if (nextErrors.name || nextErrors.email || nextErrors.job) {
       return;
     }
 
     mutate(
-      { name: trimmedName, job: trimmedJob },
+      { name: trimmedName, email: trimmedEmail, job: trimmedJob },
       {
         // The list announces the result, so the form just gets out of the way.
         onSuccess: () => {
@@ -123,6 +141,17 @@ const AddTeammateScreen = (props: IProps) => {
           placeholder="Jane Doe"
           returnKeyType="next"
           value={name}
+        />
+        <FormField
+          autoCapitalize="none"
+          disabled={isPending}
+          error={validationErrors.email}
+          keyboardType="email-address"
+          label="Email"
+          onChangeText={changeEmail}
+          placeholder="jane.doe@example.com"
+          returnKeyType="next"
+          value={email}
         />
         <FormField
           disabled={isPending}

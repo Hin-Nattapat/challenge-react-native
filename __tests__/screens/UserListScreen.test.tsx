@@ -146,17 +146,16 @@ describe('UserListScreen', () => {
     act(() => tree.unmount());
   });
 
-  test('shows a created teammate job where the email would be', () => {
+  test('falls back to initials for a created teammate without an avatar', () => {
     useUsersMock.mockReturnValue({
       data: {
         data: [
           {
             id: 512,
-            email: '',
+            email: 'jane@example.com',
             first_name: 'Jane',
             last_name: 'Doe',
             avatar: '',
-            job: 'Engineer',
           },
         ],
       },
@@ -167,7 +166,9 @@ describe('UserListScreen', () => {
     const tree = renderScreen();
 
     expect(
-      tree.root.findByProps({ accessibilityLabel: 'Jane Doe, Engineer' }),
+      tree.root.findByProps({
+        accessibilityLabel: 'Jane Doe, jane@example.com',
+      }),
     ).toBeTruthy();
     expect(tree.root.findByProps({ children: 'JD' })).toBeTruthy();
   });
