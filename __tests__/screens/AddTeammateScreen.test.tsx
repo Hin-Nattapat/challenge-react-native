@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCreateUser } from '../../src/hooks/users';
+import type { RootStackParamList } from '../../src/navigation/types';
 import AddTeammateScreen from '../../src/screens/AddTeammateScreen';
 
 jest.mock('../../src/hooks/users', () => ({
@@ -12,12 +14,18 @@ const useCreateUserMock = useCreateUser as jest.MockedFunction<
 >;
 const mutate = jest.fn();
 const reset = jest.fn();
+const popTo = jest.fn();
+const navigation = {
+  popTo,
+} as unknown as NativeStackNavigationProp<RootStackParamList, 'AddTeammate'>;
 
 const renderScreen = () => {
   let tree: ReactTestRenderer.ReactTestRenderer;
 
   act(() => {
-    tree = ReactTestRenderer.create(<AddTeammateScreen />);
+    tree = ReactTestRenderer.create(
+      <AddTeammateScreen navigation={navigation} />,
+    );
   });
 
   return tree!;
@@ -88,19 +96,41 @@ describe('AddTeammateScreen', () => {
     expect(submit.props.accessibilityState).toEqual({ disabled: true });
   });
 
-  test.each([
-    [{ isError: true, error: new Error('Request failed') }, 'Request failed'],
-    [{ isSuccess: true }, 'Teammate created'],
-  ])('shows mutation feedback', (mutationState, message) => {
+  test('returns to the list with the created name once the API accepts it', () => {
+    const tree = renderScreen();
+
+    act(() => {
+      tree.root
+        .findByProps({ accessibilityLabel: 'Name' })
+        .props.onChangeText('Jane Doe');
+      tree.root
+        .findByProps({ accessibilityLabel: 'Job' })
+        .props.onChangeText('Engineer');
+    });
+    act(() =>
+      tree.root
+        .findByProps({ accessibilityLabel: 'Create teammate' })
+        .props.onPress(),
+    );
+    act(() => mutate.mock.calls[0][1].onSuccess());
+
+    expect(popTo).toHaveBeenCalledWith('UserList', {
+      createdTeammateName: 'Jane Doe',
+    });
+  });
+
+  test('shows the API error', () => {
     useCreateUserMock.mockReturnValue({
+      error: new Error('Request failed'),
+      isError: true,
       mutate,
       reset,
-      ...mutationState,
     } as unknown as ReturnType<typeof useCreateUser>);
 
     const tree = renderScreen();
 
-    expect(tree.root.findByProps({ children: message })).toBeTruthy();
+    expect(tree.root.findByProps({ children: 'Request failed' })).toBeTruthy();
+    expect(popTo).not.toHaveBeenCalled();
   });
 
   test('clears a validation error once the field is edited', () => {
@@ -127,17 +157,15 @@ describe('AddTeammateScreen', () => {
     expect(tree.root.findByProps({ children: 'Job is required' })).toBeTruthy();
   });
 
-  test('drops stale mutation feedback once the form is edited again', () => {
+  test('drops a stale error once the form is edited again', () => {
     useCreateUserMock.mockReturnValue({
-      isSuccess: true,
+      error: new Error('Request failed'),
+      isError: true,
       mutate,
       reset,
     } as unknown as ReturnType<typeof useCreateUser>);
 
     const tree = renderScreen();
-    expect(
-      tree.root.findByProps({ children: 'Teammate created' }),
-    ).toBeTruthy();
 
     act(() =>
       tree.root

@@ -1,3 +1,4 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,20 +14,25 @@ import { getApiMessage } from '../api/errors';
 import FormField from '../components/FormField';
 import { useThemeColors } from '../hooks/theme';
 import { useCreateUser } from '../hooks/users';
+import type { RootStackParamList } from '../navigation/types';
+
+interface IProps {
+  navigation: NativeStackNavigationProp<RootStackParamList, 'AddTeammate'>;
+}
 
 interface IValidationErrors {
   job?: string;
   name?: string;
 }
 
-const AddTeammateScreen = () => {
+const AddTeammateScreen = (props: IProps) => {
+  const { navigation } = props;
   const [name, setName] = useState('');
   const [job, setJob] = useState('');
   const [validationErrors, setValidationErrors] = useState<IValidationErrors>(
     {},
   );
-  const { error, isError, isPending, isSuccess, mutate, reset } =
-    useCreateUser();
+  const { error, isError, isPending, mutate, reset } = useCreateUser();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
 
@@ -38,7 +44,7 @@ const AddTeammateScreen = () => {
 
   // Feedback belongs to the submission that produced it.
   const clearMutationFeedback = () => {
-    if (isError || isSuccess) {
+    if (isError) {
       reset();
     }
   };
@@ -77,9 +83,9 @@ const AddTeammateScreen = () => {
     mutate(
       { name: trimmedName, job: trimmedJob },
       {
+        // The list announces the result, so the form just gets out of the way.
         onSuccess: () => {
-          setName('');
-          setJob('');
+          navigation.popTo('UserList', { createdTeammateName: trimmedName });
         },
       },
     );
@@ -136,14 +142,6 @@ const AddTeammateScreen = () => {
             style={[styles.feedback, { color: colors.error }]}
           >
             {errorMessage}
-          </Text>
-        )}
-        {isSuccess && (
-          <Text
-            accessibilityLiveRegion="polite"
-            style={[styles.feedback, { color: colors.accent }]}
-          >
-            Teammate created
           </Text>
         )}
 

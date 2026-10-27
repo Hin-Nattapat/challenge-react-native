@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
+import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUsers } from '../../src/hooks/users';
 import type { RootStackParamList } from '../../src/navigation/types';
@@ -18,15 +19,24 @@ const george = {
   avatar: 'https://reqres.in/img/faces/1-image.jpg',
 };
 const navigate = jest.fn();
+const setParams = jest.fn();
 const navigation = {
   navigate,
+  setParams,
 } as unknown as NativeStackNavigationProp<RootStackParamList, 'UserList'>;
 
-const renderScreen = () => {
+const renderScreen = (params?: RootStackParamList['UserList']) => {
+  const route = {
+    key: 'UserList-test',
+    name: 'UserList',
+    params,
+  } as RouteProp<RootStackParamList, 'UserList'>;
   let tree: ReactTestRenderer.ReactTestRenderer;
 
   act(() => {
-    tree = ReactTestRenderer.create(<UserListScreen navigation={navigation} />);
+    tree = ReactTestRenderer.create(
+      <UserListScreen navigation={navigation} route={route} />,
+    );
   });
 
   return tree!;
@@ -116,5 +126,49 @@ describe('UserListScreen', () => {
 
     expect(tree.root.findAllByProps(avatar)).toHaveLength(0);
     expect(tree.root.findByProps({ children: 'GB' })).toBeTruthy();
+  });
+
+  test('toasts a teammate created on the form, once', () => {
+    useUsersMock.mockReturnValue({
+      data: { data: [george] },
+      isPending: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useUsers>);
+
+    const tree = renderScreen({ createdTeammateName: 'Jane Doe' });
+
+    expect(
+      tree.root.findByProps({ children: 'Jane Doe added to the team' }),
+    ).toBeTruthy();
+    expect(setParams).toHaveBeenCalledWith({ createdTeammateName: undefined });
+
+    // Stops the toast's hide timer so it can't outlive the test.
+    act(() => tree.unmount());
+  });
+
+  test('shows a created teammate job where the email would be', () => {
+    useUsersMock.mockReturnValue({
+      data: {
+        data: [
+          {
+            id: 512,
+            email: '',
+            first_name: 'Jane',
+            last_name: 'Doe',
+            avatar: '',
+            job: 'Engineer',
+          },
+        ],
+      },
+      isPending: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useUsers>);
+
+    const tree = renderScreen();
+
+    expect(
+      tree.root.findByProps({ accessibilityLabel: 'Jane Doe, Engineer' }),
+    ).toBeTruthy();
+    expect(tree.root.findByProps({ children: 'JD' })).toBeTruthy();
   });
 });

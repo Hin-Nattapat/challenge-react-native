@@ -14,11 +14,18 @@ interface IProps {
 const UserRow = (props: IProps) => {
   const { onPress, user } = props;
   const colors = useThemeColors();
-  const { avatar, email, first_name: firstName, last_name: lastName } = user;
+  const {
+    avatar,
+    email,
+    first_name: firstName,
+    job,
+    last_name: lastName,
+  } = user;
+  const subtitle = email || job;
 
   return (
     <Pressable
-      accessibilityLabel={`${firstName} ${lastName}, ${email}`}
+      accessibilityLabel={`${firstName} ${lastName}, ${subtitle}`}
       accessibilityRole="button"
       onPress={() => onPress(user)}
       style={({ pressed }) => [
@@ -43,7 +50,7 @@ const UserRow = (props: IProps) => {
           numberOfLines={1}
           style={[styles.email, { color: colors.secondaryText }]}
         >
-          {email}
+          {subtitle}
         </Text>
       </View>
     </Pressable>
