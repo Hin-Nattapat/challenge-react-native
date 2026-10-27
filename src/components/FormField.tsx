@@ -3,8 +3,10 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useThemeColors } from '../hooks/theme';
 
 interface IProps {
+  autoCapitalize?: TextInputProps['autoCapitalize'];
   disabled?: boolean;
   error?: string;
+  keyboardType?: TextInputProps['keyboardType'];
   label: string;
   onChangeText: (value: string) => void;
   onSubmitEditing?: () => void;
@@ -15,8 +17,10 @@ interface IProps {
 
 const FormField = (props: IProps) => {
   const {
+    autoCapitalize = 'words',
     disabled = false,
     error,
+    keyboardType,
     label,
     onChangeText,
     onSubmitEditing,
@@ -32,8 +36,9 @@ const FormField = (props: IProps) => {
       <TextInput
         accessibilityLabel={label}
         accessibilityState={{ disabled }}
-        autoCapitalize="words"
+        autoCapitalize={autoCapitalize}
         editable={!disabled}
+        keyboardType={keyboardType}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmitEditing}
         placeholder={placeholder}
